@@ -1,8 +1,3 @@
-"""
-MLOps Batch Pipeline
-Computes rolling mean signals on OHLCV close price data.
-"""
-
 import argparse
 import json
 import logging
@@ -21,7 +16,6 @@ import yaml
 # ---------------------------------------------------------------------------
 
 def setup_logging(log_file: str) -> logging.Logger:
-    """Configure root logger to write to both file and stdout."""
     logger = logging.getLogger("mlops_pipeline")
     logger.setLevel(logging.DEBUG)
 
@@ -30,13 +24,11 @@ def setup_logging(log_file: str) -> logging.Logger:
         datefmt="%Y-%m-%dT%H:%M:%S",
     )
 
-    # File handler
     fh = logging.FileHandler(log_file, mode="w", encoding="utf-8")
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(fmt)
     logger.addHandler(fh)
 
-    # Console handler
     ch = logging.StreamHandler(sys.stdout)
     ch.setLevel(logging.INFO)
     ch.setFormatter(fmt)
@@ -53,7 +45,6 @@ REQUIRED_CONFIG_KEYS = {"seed", "window", "version"}
 
 
 def load_config(config_path: str, logger: logging.Logger) -> dict:
-    """Load and validate YAML config file."""
     logger.info("Loading config from: %s", config_path)
 
     path = Path(config_path)
@@ -73,7 +64,6 @@ def load_config(config_path: str, logger: logging.Logger) -> dict:
     if missing:
         raise ValueError(f"Config missing required fields: {sorted(missing)}")
 
-    # Type validation
     if not isinstance(config["seed"], int):
         raise ValueError(f"'seed' must be an integer, got: {type(config['seed']).__name__}")
     if not isinstance(config["window"], int) or config["window"] < 1:
@@ -93,7 +83,6 @@ def load_config(config_path: str, logger: logging.Logger) -> dict:
 # ---------------------------------------------------------------------------
 
 def load_data(input_path: str, logger: logging.Logger) -> pd.DataFrame:
-    """Load CSV and return a validated DataFrame."""
     logger.info("Loading input data from: %s", input_path)
 
     path = Path(input_path)
@@ -115,7 +104,6 @@ def load_data(input_path: str, logger: logging.Logger) -> pd.DataFrame:
             f"Missing required column 'close'. Found columns: {list(df.columns)}"
         )
 
-    # Coerce close to numeric; flag non-parseable rows
     df["close"] = pd.to_numeric(df["close"], errors="coerce")
     n_invalid = df["close"].isna().sum()
     if n_invalid == len(df):
@@ -133,10 +121,6 @@ def load_data(input_path: str, logger: logging.Logger) -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 
 def compute_rolling_mean(series: pd.Series, window: int, logger: logging.Logger) -> pd.Series:
-    """
-    Compute rolling mean with min_periods=window.
-    The first (window-1) rows will be NaN — this is intentional and clearly defined.
-    """
     logger.info("Computing rolling mean with window=%d (first %d rows will be NaN).", window, window - 1)
     rolling_mean = series.rolling(window=window, min_periods=window).mean()
     valid_count = rolling_mean.notna().sum()
@@ -145,13 +129,8 @@ def compute_rolling_mean(series: pd.Series, window: int, logger: logging.Logger)
 
 
 def generate_signals(close: pd.Series, rolling_mean: pd.Series, logger: logging.Logger) -> pd.Series:
-    """
-    Generate binary signal: 1 if close > rolling_mean else 0.
-    Rows where rolling_mean is NaN receive signal=0 (no trade during warm-up).
-    """
     logger.info("Generating signals (1 = close > rolling_mean, 0 otherwise).")
     signal = (close > rolling_mean).astype(int)
-    # Explicitly zero-out warm-up rows where rolling_mean is NaN
     signal[rolling_mean.isna()] = 0
     logger.debug("Signal distribution — 1s: %d, 0s: %d", signal.sum(), (signal == 0).sum())
     return signal
@@ -168,7 +147,6 @@ def compute_metrics(
     latency_ms: float,
     logger: logging.Logger,
 ) -> dict:
-    """Assemble structured metrics dict."""
     rows_processed = len(df)
     signal_rate = round(float(signal.mean()), 6)
 
@@ -194,7 +172,6 @@ def compute_metrics(
 # ---------------------------------------------------------------------------
 
 def write_metrics(metrics: dict, output_path: str, logger: logging.Logger) -> None:
-    """Write metrics dict to JSON file."""
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=2)
     logger.info("Metrics written to: %s", output_path)
@@ -205,7 +182,6 @@ def write_error_metrics(
     output_path: str,
     version: str = "unknown",
 ) -> None:
-    """Write error metrics. Always succeeds (best-effort)."""
     error_payload = {
         "version": version,
         "status": "error",
@@ -215,7 +191,7 @@ def write_error_metrics(
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(error_payload, f, indent=2)
     except Exception:
-        pass  # If we can't write the file, there's nothing more we can do
+        pass
 
 
 # ---------------------------------------------------------------------------
@@ -247,7 +223,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
     logger.info("  log-file: %s", args.log_file)
     logger.info("=" * 60)
 
-    version = "unknown"  # fallback for error payload before config is parsed
+    version = "unknown"
 
     try:
         # 1. Config
@@ -283,14 +259,12 @@ def run_pipeline(args: argparse.Namespace) -> None:
         logger.info("MLOps Pipeline — Job completed successfully.")
         logger.info("=" * 60)
 
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:
         error_message = str(exc)
         logger.error("Pipeline FAILED: %s", error_message)
         logger.debug("Full traceback:\n%s", traceback.format_exc())
 
         write_error_metrics(error_message, args.output, version=version)
-
-        # Also print error payload to stdout
         print(json.dumps({"version": version, "status": "error", "error_message": error_message}, indent=2))
 
         logger.info("=" * 60)
@@ -298,7 +272,6 @@ def run_pipeline(args: argparse.Namespace) -> None:
         logger.info("=" * 60)
 
         sys.exit(1)
-
 
 if __name__ == "__main__":
     args = parse_args()
