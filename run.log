@@ -1,0 +1,21 @@
+2026-03-21T00:42:55 | INFO     | ============================================================
+2026-03-21T00:42:55 | INFO     | MLOps Pipeline — Job started
+2026-03-21T00:42:55 | INFO     |   input   : data1.csv
+2026-03-21T00:42:55 | INFO     |   config  : config.yaml
+2026-03-21T00:42:55 | INFO     |   output  : metrics.json
+2026-03-21T00:42:55 | INFO     |   log-file: run.log
+2026-03-21T00:42:55 | INFO     | ============================================================
+2026-03-21T00:42:55 | INFO     | Loading config from: config.yaml
+2026-03-21T00:42:55 | INFO     | Config validated — seed=42, window=5, version=v1
+2026-03-21T00:42:55 | INFO     | NumPy random seed set to 42.
+2026-03-21T00:42:55 | INFO     | Loading input data from: data1.csv
+2026-03-21T00:42:55 | INFO     | Rows loaded after validation: 10000
+2026-03-21T00:42:55 | INFO     | Computing rolling mean with window=5 (first 4 rows will be NaN).
+2026-03-21T00:42:55 | DEBUG    | Rolling mean computed — valid (non-NaN) values: 9996 / 10000
+2026-03-21T00:42:55 | INFO     | Generating signals (1 = close > rolling_mean, 0 otherwise).
+2026-03-21T00:42:55 | DEBUG    | Signal distribution — 1s: 4989, 0s: 5011
+2026-03-21T00:42:55 | INFO     | Metrics — rows_processed=10000, signal_rate=0.498900, latency_ms=70.16
+2026-03-21T00:42:55 | INFO     | Metrics written to: metrics.json
+2026-03-21T00:42:55 | INFO     | ============================================================
+2026-03-21T00:42:55 | INFO     | MLOps Pipeline — Job completed successfully.
+2026-03-21T00:42:55 | INFO     | ============================================================

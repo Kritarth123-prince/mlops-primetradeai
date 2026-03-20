@@ -1,0 +1,24 @@
+2026-03-21T00:39:17 | INFO     | ============================================================
+2026-03-21T00:39:17 | INFO     | MLOps Pipeline — Job started
+2026-03-21T00:39:17 | INFO     |   input   : data.csv
+2026-03-21T00:39:17 | INFO     |   config  : config.yaml
+2026-03-21T00:39:17 | INFO     |   output  : metrics.json
+2026-03-21T00:39:17 | INFO     |   log-file: run.log
+2026-03-21T00:39:17 | INFO     | ============================================================
+2026-03-21T00:39:17 | INFO     | Loading config from: config.yaml
+2026-03-21T00:39:17 | INFO     | Config validated — seed=42, window=5, version=v1
+2026-03-21T00:39:17 | INFO     | NumPy random seed set to 42.
+2026-03-21T00:39:17 | INFO     | Loading input data from: data.csv
+2026-03-21T00:39:17 | ERROR    | Pipeline FAILED: Missing required column 'close'. Found columns: ['timestamp,open,high,low,close,volume_btc,volume_usd']
+2026-03-21T00:39:17 | DEBUG    | Full traceback:
+Traceback (most recent call last):
+  File "F:\Projects\Intenshala\Primetrade.ai\run.py", line 262, in run_pipeline
+    df = load_data(args.input, logger)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\Projects\Intenshala\Primetrade.ai\run.py", line 114, in load_data
+    raise ValueError(
+ValueError: Missing required column 'close'. Found columns: ['timestamp,open,high,low,close,volume_btc,volume_usd']
+
+2026-03-21T00:39:17 | INFO     | ============================================================
+2026-03-21T00:39:17 | INFO     | MLOps Pipeline — Job ended with errors.
+2026-03-21T00:39:17 | INFO     | ============================================================
